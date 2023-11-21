@@ -4,7 +4,6 @@
 import { useState } from "react"
 import OpenAI from "openai";
 import { api } from "@/AI/openai1";
-import dotenv from 'dotenv';
 
 
 
@@ -26,11 +25,14 @@ export default function Home() {
 
 
   const openai = new OpenAI({
-    apiKey: api,
+    apiKey: ,
     dangerouslyAllowBrowser: true,
   });
 
   async function main() {
+
+    console.log(obj.transactionType)
+
     const completion = await openai.chat.completions.create({
       messages: [
         // {
@@ -48,11 +50,11 @@ export default function Home() {
       model: "gpt-3.5-turbo-1106",
       response_format: { type: "json_object" },
     });
-    console.log(completion.choices[0].message.content);
+    console.log(JSON.parse(completion.choices[0].message.content));
 
-    obj = completion.choices[0].message.content
+    obj = JSON.parse(completion.choices[0].message.content);
 
-    return completion.choices[0].message.content;
+    return obj;
   }
 
 
@@ -66,8 +68,34 @@ export default function Home() {
       let ans = await main();
       console.log(`object is ${obj}`);
       setOutput(input);
+      errorCheck()
+      console.log(obj.tokenSymbol)
     }
   }
+
+  const cryptoCurrencies = ["BTC", "ETH", "BNB", "ADA", "SOL", "XRP", "DOT", "DOGE", "SHIB", "LTC", "LINK", "UNI", "AVAX", "LUNA", "MATIC", "XLM", "VET", "FIL", "TRX", "XTZ", "ATOM"];
+
+  const errorCheck = () => {
+    if (obj.transactionType.toLowerCase() === "buy" || obj.transactionType.toLowerCase() === "sell"){
+      if (cryptoCurrencies.includes(obj.tokenSymbol) === true){
+        if (typeof obj.tokenAmount == "number" || "float"){
+          console.log("all clear")
+        }
+        else{
+          console.log("error: amount")
+          return "add a different prompt, errors in this one, unable to find amount";}
+      }
+      else{ 
+        console.log("error: token symbol")
+        return "add a different prompt, errors in this one, unable to find token symbol"}
+    }
+    else{
+      console.log("error: transaction type")
+      return "add a different prompt, errors in this one, unable to find transaction type"
+    }
+  }
+
+
 
   return (
     <div>
